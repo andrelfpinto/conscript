@@ -31,38 +31,37 @@ object Conscript {
   def run(args: Array[String]): Int = {
     import scopt._
     var config = Config()
-    val parser = new OptionParser("cs", BuildInfo.version) {
-      opt("clean-boot", "clears boot dir", {
-        config = config.copy(clean_boot = true)
-      })
-      opt("setup", "installs sbt launcher", {
-        config = config.copy(setup = true)
-      })
-      opt("b", "branch", "github branch (default: master)", { b => 
-        config = config.copy(branch = Some(b))
-      })
-      opt("a", "auth", "obtain oauth token with <name>:<password>", { b => 
-        config = config.copy(auth = Some(b))
-      })
-      opt("local", "include local repos", {
-        config = config.copy(entries = config.entries :+ InsertLocalRepository)
-      })
-      opt("no-local", "exclude local and maven-local repos", {
-        config = config.copy(entries = config.entries ++ Seq(RemoveLocalRepository, RemoveMavenLocalRepository))
-      })      
-      opt("version", "print current version", {
-        config = config.copy(usage = true)
-      })
-      opt("no-exec", "don't execute program after install", {
-        config = config.copy(shouldExec = false)
-      })
-      argOpt("[<user>/<project>[/<version>]]", "github project", { p =>
-        config = config.copy(project = p)
-      })
+    val parser = new OptionParser[Config]("cs") {
+      version(BuildInfo.version)
+      opt[Unit]("clean-boot") text("clears boot dir") action { (_, config) =>
+        config.copy(clean_boot = true)
+      }
+      opt[Unit]("setup") text("installs sbt launcher") action { (_, config) =>
+        config.copy(setup = true)
+      }
+      opt[String]('b', "branch") text("github branch (default: master)") action { (b, config) =>
+        config.copy(branch = Some(b))
+      }
+      opt[String]('a', "auth") text("obtain oauth token with <name>:<password>") action { (a, config) =>
+        config.copy(auth = Some(a))
+      }
+      opt[Unit]("local") text("include local repos") action { (_, config) =>
+        config.copy(entries = config.entries :+ InsertLocalRepository)
+      }
+      opt[Unit]("no-local") text("exclude local and maven-local repos") action { (_, config) =>
+        config.copy(entries = config.entries ++ Seq(RemoveLocalRepository, RemoveMavenLocalRepository))
+      }
+      opt[Unit]("version") text("print current version") action { (_, config) =>
+        config.copy(usage = true)
+      }
+      opt[Unit]("no-exec") text("don't execute program after install") action { (_, config) =>
+        config.copy(shouldExec = false)
+      }
+      arg[String]("[<user>/<project>[/<version>]]") text("github project") action { (p, config) =>
+        config.copy(project = p)
+      }
     }
-    val parsed =
-      if (parser.parse(args)) Some(config)
-      else None
+    val parsed = parser.parse(args, config)
     val display =
       if (config.setup)
         allCatch.opt {
