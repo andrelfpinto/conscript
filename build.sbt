@@ -8,7 +8,7 @@ version := "0.4.5"
 
 name := "conscript"
 
-scalaVersion := "2.9.2"
+scalaVersion := "2.10.6"
 
 libraryDependencies <<= (libraryDependencies, scalaVersion, sbtVersion) {
   (deps, sv, sbtv) => deps ++ Seq(
